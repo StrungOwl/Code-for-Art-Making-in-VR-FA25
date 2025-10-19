@@ -1,0 +1,130 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using UnityEngine.SceneManagement;
+using Oculus.Interaction;
+
+public class GrabSceneTransitionFade : MonoBehaviour
+{
+    [Header("Scene Settings")]
+    [SerializeField] private string sceneToLoad = "NextScene";
+    [SerializeField] private float transitionDelay = 0.5f;
+    
+    [Header("Fade Transition")]
+    [SerializeField] private bool fadeTransition = true;
+    [SerializeField] private float fadeTime = 1f;
+    [SerializeField] private Image fadeImage;
+    
+    private Grabbable grabbable;
+    private bool hasTriggered = false;
+    
+    void Start()
+    {
+        // Get the Grabbable component
+        grabbable = GetComponent<Grabbable>();
+        
+        if (grabbable == null)
+        {
+            Debug.LogError("GrabSceneTransition: No Grabbable component found on " + gameObject.name);
+            return;
+        }
+        
+        // Subscribe to grab events
+        grabbable.WhenPointerEventRaised += OnGrabEvent;
+        
+        if (fadeTransition && fadeImage != null)
+        {
+            // start transparent
+            Color startColor = fadeImage.color;
+            fadeImage.color = new Color(startColor.r, startColor.g, startColor.b, 0f);
+            
+            DontDestroyOnLoad(fadeImage.canvas.gameObject);
+        }
+        else if (fadeTransition && fadeImage == null)
+        {
+            Debug.LogWarning("Fade transition is enabled but no fade image is assigned!");
+        }
+    }
+    
+    void OnDestroy()
+    {
+        // Unsubscribe to prevent memory leaks
+        if (grabbable != null)
+        {
+            grabbable.WhenPointerEventRaised -= OnGrabEvent;
+        }
+    }
+    
+    private void OnGrabEvent(PointerEvent pointerEvent)
+    {
+        // Check if this is a grab event (not release)
+        if (pointerEvent.Type == PointerEventType.Select && !hasTriggered)
+        {
+            hasTriggered = true;
+            Debug.Log("Object grabbed! Transitioning to scene: " + sceneToLoad);
+            
+            // Validate scene name before loading
+            if (string.IsNullOrEmpty(sceneToLoad))
+            {
+                Debug.LogError("Scene name is empty! Please set the scene name in the inspector.");
+                hasTriggered = false;
+                return;
+            }
+            
+            if (transitionDelay > 0)
+            {
+                Invoke(nameof(LoadScene), transitionDelay);
+            }
+            else
+            {
+                LoadScene();
+            }
+        }
+    }
+    
+    private void LoadScene()
+    {
+        // Disable GrabAndLocate components to prevent null reference errors
+        var grabAndLocates = FindObjectsOfType<Meta.XR.MRUtilityKit.BuildingBlocks.GrabAndLocate>();
+        foreach (var component in grabAndLocates)
+        {
+            if (component != null)
+            {
+                component.enabled = false;
+            }
+        }
+        
+        if (fadeTransition && fadeImage != null)
+        {
+            StartCoroutine(FadeAndLoadScene());
+        }
+        else
+        {
+            SceneManager.LoadScene(sceneToLoad);
+        }
+    }
+    
+    private IEnumerator FadeAndLoadScene()
+    {
+        float elapsedTime = 0f;
+        Color currentColor = fadeImage.color;
+        Color startColor = new Color(currentColor.r, currentColor.g, currentColor.b, 0f);
+        Color endColor = new Color(currentColor.r, currentColor.g, currentColor.b, 1f);
+        
+        // fade out (transparent to opaque)
+        while (elapsedTime < fadeTime)
+        {
+            elapsedTime += Time.deltaTime;
+            float t = Mathf.Clamp01(elapsedTime / fadeTime);
+            fadeImage.color = Color.Lerp(startColor, endColor, t);
+            yield return null;
+        }
+        
+        // fully opaque
+        fadeImage.color = endColor;
+        
+        // load the scene
+        SceneManager.LoadScene(sceneToLoad);
+    }
+}
