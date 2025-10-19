@@ -38,8 +38,6 @@ public class GrabSceneTransitionFade : MonoBehaviour
             // start transparent
             Color startColor = fadeImage.color;
             fadeImage.color = new Color(startColor.r, startColor.g, startColor.b, 0f);
-            
-            DontDestroyOnLoad(fadeImage.canvas.gameObject);
         }
         else if (fadeTransition && fadeImage == null)
         {
