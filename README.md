@@ -19,5 +19,5 @@ FADE AND TRANSITION: Change the name of the scene in line 20 of this script. Att
 
 FADE IN EFFECT: Attach to an empty game object called "FadeInEffect". Create a canvas, and inside that canvas create a panel that takes up the entire canvas. Drag that panel into the "Fade Image" variable in the inspector of the FadeInEffect object. On start, this object will automatically fade in from black. 
 
-TOGGLE MENUE: Press a button to show or hide your menu. When it appears, the script puts the menu in front of the player and freezes the game and when you close it, the game unfreezes.
+TOGGLE MENU: Press a button to show or hide your menu. When it appears, the script puts the menu in front of the player and freezes the game and when you close it, the game unfreezes.
 
