@@ -1,0 +1,59 @@
+using UnityEngine;
+using UnityEngine.InputSystem;
+
+public class ToggleMenu : MonoBehaviour
+{
+    public GameObject userInterface; // Assign in Inspector
+    public InputActionReference menuToggleAction; // Assign in Inspector (Menu button input)
+    public Transform cameraTransform; // Assign the main camera of the XR Rig here
+    public float distanceFromPlayer = 2f; // Distance of the UI from the player's view
+    public Vector3 menuOffset = Vector3.zero; // Optional offset adjustment for position
+    public Vector3 menuRotationOffset = Vector3.zero; // Optional offset adjustment for rotation
+
+    private void OnEnable()
+    {
+        menuToggleAction.action.performed += ToggleUserInterface;
+    }
+
+    private void OnDisable()
+    {
+        menuToggleAction.action.performed -= ToggleUserInterface;
+        ResumeTime(); // Ensure time resumes when the object is disabled
+    }
+
+    private void OnDestroy()
+    {
+        ResumeTime(); // Ensure time resumes if the object is destroyed
+    }
+
+    private void ToggleUserInterface(InputAction.CallbackContext context)
+    {
+        // Toggle the UI active state
+        userInterface.SetActive(!userInterface.activeSelf);
+
+        if (userInterface.activeSelf)
+        {
+            // Set the position in front of the player's view with optional offset
+            Vector3 targetPosition = cameraTransform.position + cameraTransform.forward * distanceFromPlayer + menuOffset;
+            userInterface.transform.position = targetPosition;
+            
+            // Set the rotation with an additional offset, keeping the menu’s own rotation
+            Quaternion rotationOffset = Quaternion.Euler(menuRotationOffset);
+            userInterface.transform.rotation = rotationOffset;
+
+            // Pause the game
+            Time.timeScale = 0;
+        }
+        else
+        {
+            // Resume the game
+            ResumeTime();
+        }
+    }
+
+    private void ResumeTime()
+    {
+        // Set time scale to 1 to resume the game
+        Time.timeScale = 1;
+    }
+}
