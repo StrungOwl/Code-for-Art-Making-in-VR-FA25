@@ -21,3 +21,5 @@ FADE IN EFFECT: Attach to an empty game object called "FadeInEffect". Create a c
 
 TOGGLE MENU: Press a button to show or hide your menu. When it appears, the script puts the menu in front of the player and freezes the game and when you close it, the game unfreezes.
 
+RAY GUN: Create parent object "Gun" and put this script on it. You will attach the gun model to this as a child object and create an empty object called "shooting point" that will be the location where your ray appears. The Ray Gun script will have slots including: audio source, shooting audio clip, ray impact prefab, line prefab, shooting point. You'll need to create the ray impact prefab and line prefab (line renderer). The ray impact is basically an empty object with a shader on it and the line prefab is an empty object with a line renderer on it. Please watch Valem's video (first 25 minutes) for walkthrough: https://youtu.be/pZ5vLcyjois?si=vlLBCcqqkD80BEy6
+
