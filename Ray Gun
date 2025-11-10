@@ -1,0 +1,82 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class RayGun : MonoBehaviour
+{
+    //3rd Step Audio
+    public AudioSource source; 
+    public AudioClip shootingAudioClip; // Sound to play when shooting
+
+    //Second Step hit something
+    public LayerMask layerMask; // Layer mask to specify which layers the ray can hit
+    public GameObject rayImpactPrefab;  
+
+    //First Step move ray
+    public OVRInput.RawButton shootingButton;
+    public LineRenderer linePrefab;
+    public Transform shootingPoint;
+    public float maxLineDistance = 5;
+    public float lineShowTimer = 0.3f; // Time to show the line
+
+
+    // Start is called before the first frame update
+    void Start()
+    {
+
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        if (OVRInput.GetDown(shootingButton))
+        {
+            Shoot();
+        }
+
+    }
+
+    public void Shoot()
+    {
+
+        Debug.Log("RayGun Shoot!");
+
+        //3rd Step Audio
+        source.PlayOneShot(shootingAudioClip); // Play the shooting sound
+
+        //Second Step, hit something
+        Ray ray = new(shootingPoint.position, shootingPoint.forward);
+        bool hasHit = Physics.Raycast(ray, out RaycastHit hit, maxLineDistance, layerMask);
+
+        Vector3 endPoint = Vector3.zero;
+
+        if (hasHit)
+        {
+            //Stop the ray 
+            endPoint = hit.point;//position where the ray found a collider
+                                 //Get rotation
+            Quaternion rayImpactRotation = Quaternion.LookRotation(-hit.normal); //- turns it 90 degrees  
+            GameObject rayImpact = Instantiate(rayImpactPrefab, hit.point, rayImpactRotation); //set rotation of impact to same surface you are hitting
+            Destroy(rayImpact, 1);  
+        }
+        else
+        {
+            //Choose an end point for the ray's life
+            endPoint = shootingPoint.position + shootingPoint.forward * maxLineDistance;
+
+        }
+
+        //First Step, move the Ray
+        LineRenderer line = Instantiate(linePrefab);
+        line.positionCount = 2;
+        line.SetPosition(0, shootingPoint.position);
+
+        //vector movement was here previously
+
+        line.SetPosition(1, endPoint);
+
+        Destroy(line.gameObject, lineShowTimer); // Destroy the line after a certain time
+
+
+    }
+}
